@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Movies - Netflix</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #141414;
+      color: #fff;
+      font-family: 'Netflix Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Navbar Styling */
+    .navbar {
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      padding: 15px 50px;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      transition: background 0.3s ease;
+    }
+
+    .navbar.scrolled {
+      background: rgba(0, 0, 0, 0.95);
+    }
+
+    .navbar-brand {
+      color: #e50914 !important;
+      font-weight: 900;
+      font-size: 28px;
+      text-decoration: none;
+      letter-spacing: 1px;
+    }
+
+    .navbar-nav {
+      gap: 25px;
+    }
+
+    .nav-link {
+      color: #fff !important;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.3s ease;
+      text-decoration: none;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: #b3b3b3 !important;
+    }
+
+    .dropdown-menu {
+      background: rgba(0, 0, 0, 0.9);
+      border: 1px solid #333;
+      border-radius: 4px;
+    }
+
+    .dropdown-item {
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .dropdown-item:hover {
+      background: #333;
+      color: #fff;
+    }
+
+    /* Page Header */
+    .page-header {
+      margin-top: 80px;
+      padding: 60px 50px 40px;
+      background: linear-gradient(135deg, rgba(229, 9, 20, 0.1) 0%, rgba(0, 0, 0, 0.8) 100%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .page-title {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #fff 0%, #e50914 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .page-subtitle {
+      font-size: 18px;
+      color: #b3b3b3;
+      margin: 0;
+    }
+
+    /* Section Styling */
+    section {
+      padding: 40px 0;
+    }
+
+    .row-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+
+    /* Movie Grid */
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      padding: 0 50px;
+      margin-bottom: 40px;
+    }
+
+    .movie-card {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      background: #1a1a1a;
+    }
+
+    .movie-card:hover {
+      transform: scale(1.05);
+      z-index: 10;
+    }
+
+    .movie-poster {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .movie-card:hover .movie-poster {
+      filter: brightness(1.1);
+    }
+
+    /* Remove Button */
+    .remove-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      color: #fff;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 5;
+    }
+
+    .movie-card:hover .remove-btn {
+      opacity: 1;
+    }
+
+    .remove-btn:hover {
+      background: rgba(229, 9, 20, 0.9);
+      transform: scale(1.1);
+    }
+
+    /* Movie Popup */
+    .movie-popup {
+      position: absolute;
+      top: 100%;
+      left: -10px;
+      right: -10px;
+      background: rgba(20, 20, 20, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 8px;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      z-index: 20;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .movie-card:hover .movie-popup {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .popup-poster {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+
+    .popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .popup-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      margin: 0;
+      flex: 1;
+      margin-right: 10px;
+    }
+
+    .popup-match {
+      background: #46d369;
+      color: #000;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+
+    .popup-meta {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: #b3b3b3;
+    }
+
+    .popup-year,
+    .popup-rating,
+    .popup-duration {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .popup-description {
+      font-size: 13px;
+      color: #b3b3b3;
+      line-height: 1.4;
+      margin-bottom: 12px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .popup-genres {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 15px;
+    }
+
+    .genre-tag {
+      background: rgba(229, 9, 20, 0.2);
+      color: #fff;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(229, 9, 20, 0.3);
+    }
+
+    .popup-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .popup-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background: rgba(42, 42, 42, 0.8);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .popup-btn:hover {
+      border-color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(1.1);
+    }
+
+    .play-btn {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    .play-btn:hover {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .remove-from-list-btn:hover {
+      background: rgba(229, 9, 20, 0.9);
+      border-color: #e50914;
+    }
+
+    /* Load More Button */
+    #load-more {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 12px 32px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: block;
+      margin: 0 auto;
+      backdrop-filter: blur(10px);
+    }
+
+    #load-more:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.4);
+      transform: translateY(-2px);
+    }
+
+    #load-more:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 80px 50px;
+      color: #b3b3b3;
+    }
+
+    .empty-state i {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    .empty-state p {
+      font-size: 16px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    /* Footer */
+    .footer {
+      background: #000;
+      color: #737373;
+      text-align: center;
+      padding: 40px 50px;
+      margin-top: 60px;
+      border-top: 1px solid #333;
+      font-size: 14px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 10px 20px;
+      }
+
+      .page-header {
+        padding: 40px 20px 30px;
+      }
+
+      .page-title {
+        font-size: 32px;
+      }
+
+      .movie-grid {
+        padding: 0 20px;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+      }
+
+      .movie-poster {
+        height: 225px;
+      }
+
+      .row-title {
+        padding: 0 20px !important;
+        font-size: 20px;
+      }
+
+      .footer {
+        padding: 30px 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .movie-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .navbar-nav {
+        gap: 15px;
+      }
+
+      .nav-link {
+        font-size: 13px;
+      }
+    }
+
+    /* Scroll behavior */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Loading animation */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .movie-card {
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #1a1a1a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar d-flex justify-content-between align-items-center">
+    <a class="navbar-brand" href="home.html">NETFLIX</a>
+    <ul class="navbar-nav d-flex flex-row">
+      <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+      <li class="nav-item"><a class="nav-link" href="movies.html">Movies</a></li>
+      <li class="nav-item"><a class="nav-link active" href="myList.html">My List</a></li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Profile</a>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#">Account</a></li>
+          <li><a class="dropdown-item" href="#" id="logoutBtn" onclick="logout()">Logout</a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">My Movies</h1>
+    <p class="page-subtitle">Browse my collection of movies</p>
+  </div>
+
+  <!-- My Movies -->
+  <section>
+    <h2 class="row-title" style="padding: 0 50px;">My Movies</h2>
+    <div class="movie-grid" id="movies-grid"></div>
+    <button id="load-more">Load More</button>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    &copy; 2025 Netflix Clone. All rights reserved.
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    const API_URL = "https://netflix-ldox1.sevalla.app/v1/movies/getMyList";
+    const REMOVE_API_URL = "https://netflix-ldox1.sevalla.app/v1/movies/removeMyList";
+    let currentPage = 0;
+    const pageSize = 20;
+
+    function createMovieCard(movie, listItemId) {
+      const card = document.createElement("div");
+      card.className = "movie-card";
+      card.dataset.id = listItemId;
+
+      const img = document.createElement("img");
+      img.src = movie.imageUrl;
+      img.className = "movie-poster";
+      img.alt = movie.title;
+
+      img.addEventListener("click", () => {
+        window.location.href = `player.html?id=${movie.id}`;
+      });
+
+      // Remove button
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "remove-btn";
+      removeBtn.innerHTML = '<i class="bi bi-x-lg"></i>';
+      removeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        removeFromMyList(listItemId, card);
+      });
+
+      // NEW POPUP CONTENT - Modern Netflix-style
+      const popup = document.createElement("div");
+      popup.className = "movie-popup";
+
+      // Generate a random match percentage (like Netflix does)
+      const matchPercentage = Math.floor(Math.random() * 30) + 70;
+
+      // Calculate duration in hours and minutes
+      const hours = Math.floor(movie.duration / 60);
+      const minutes = movie.duration % 60;
+      const durationText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+
+      popup.innerHTML = `
+        <img src="${movie.imageUrl}" class="popup-poster" alt="${movie.title}">
+        <div class="popup-content">
+          <div class="popup-header">
+            <h3 class="popup-title">${movie.title}</h3>
+            <div class="popup-match">${matchPercentage}% Match</div>
+          </div>
+          <div class="popup-meta">
+            <span class="popup-year">${movie.year}</span>
+            <span class="popup-rating">${movie.rating || 'PG-13'}</span>
+            <span class="popup-duration">${durationText}</span>
+          </div>
+          <div class="popup-description">${movie.description}</div>
+          <div class="popup-genres">
+            ${movie.genres.slice(0, 3).map(genre => `<span class="genre-tag">${genre}</span>`).join('')}
+          </div>
+          <div class="popup-actions">
+            <button class="popup-btn play-btn" onclick="window.location.href='player.html?id=${movie.id}'">
+              <i class="bi bi-play-fill"></i>
+            </button>
+            <button class="popup-btn remove-from-list-btn" data-id="${listItemId}">
+              <i class="bi bi-x"></i>
+            </button>
+            <button class="popup-btn"><i class="bi bi-hand-thumbs-up"></i></button>
+          </div>
+        </div>
+      `;
+
+      card.appendChild(img);
+      card.appendChild(removeBtn);
+      card.appendChild(popup);
+
+      // Add event listener to the remove button in the popup
+      setTimeout(() => {
+        const popupRemoveBtn = card.querySelector('.remove-from-list-btn');
+        if (popupRemoveBtn) {
+          popupRemoveBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeFromMyList(listItemId, card);
+          });
+        }
+      }, 100);
+
+      return card;
+    }
+
+    async function removeFromMyList(listItemId, cardElement) {
+      const token = await getClerkToken();
+      try {
+        const response = await fetch(`${REMOVE_API_URL}/${listItemId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          // Remove the card from the UI with a fade effect
+          cardElement.style.opacity = '0';
+          cardElement.style.transition = 'opacity 0.3s ease';
+          setTimeout(() => {
+            cardElement.remove();
+            checkEmptyState();
+          }, 300);
+          Swal.fire({
+            icon: 'success',
+            title: 'Removed from your list',
+            showConfirmButton: false,
+            timer: 1500,
+            background: '#141414',
+            color: '#fff'
+          });
+        } else {
+          console.error('Failed to remove from list');
+        }
+      } catch (error) {
+        console.error('Error removing from list:', error);
+      }
+    }
+
+    function checkEmptyState() {
+      const moviesGrid = document.getElementById("movies-grid");
+      if (moviesGrid.children.length === 0) {
+        const emptyState = document.createElement("div");
+        emptyState.className = "empty-state";
+        emptyState.innerHTML = `
+          <i class="bi bi-film"></i>
+          <h3>Your list is empty</h3>
+          <p>Add movies to your list to watch them later</p>
+        `;
+        moviesGrid.parentNode.insertBefore(emptyState, moviesGrid.nextSibling);
+        document.getElementById("load-more").style.display = "none";
+      }
+    }
+
+    async function fetchMovies(page) {
+      const token = await getClerkToken();
+      try {
+        const res = await fetch(`${API_URL}?page=${page}&size=${pageSize}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        const data = await res.json();
+        return data.data.content;
+      } catch (err) {
+        console.error("Error fetching movies:", err);
+        return [];
+      }
+    }
+
+    async function loadMovies() {
+      const movies = await fetchMovies(currentPage);
+
+      if (movies.length === 0) {
+        document.getElementById("load-more").disabled = true;
+        checkEmptyState();
+        return;
+      }
+
+      const moviesGrid = document.getElementById("movies-grid");
+
+      movies.forEach(movieItem => {
+        const card = createMovieCard(movieItem.movie, movieItem.id);
+        moviesGrid.appendChild(card);
+      });
+    }
+
+    document.getElementById("load-more").addEventListener("click", () => {
+      currentPage++;
+      loadMovies();
+    });
+
+    // Initialize Clerk and load movies
+    function initClerk() {
+      if (!window.Clerk) {
+        console.error("Clerk script not loaded yet!");
+        return;
+      }
+      Clerk.load().then(loadMovies);
+    }
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      const navbar = document.querySelector('.navbar');
+      if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+  </script>
+  <script src="static/js/util.js"></script>
+  <!-- Clerk Script -->
+  <script async crossorigin="anonymous"
+    data-clerk-publishable-key="pk_test_dG9wLWdhbm5ldC05Mi5jbGVyay5hY2NvdW50cy5kZXYk"
+    src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" onload="initClerk()">
+    </script>
+</body>
+
+</html>

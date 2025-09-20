@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gemini Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #chat-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+        }
+
+        .user {
+            color: blue;
+            margin: 5px 0;
+        }
+
+        .bot {
+            color: green;
+            margin: 5px 0;
+        }
+
+        #input-box {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Gemini Chat</h2>
+    <div id="chat-box"></div>
+    <div id="input-box">
+
+        <input type="text" id="user-input" placeholder="Type a message..." style="width:80%">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        // Get Clerk JWT token
+        async function getClerkToken() {
+            if (!window.Clerk) {
+                console.error("Clerk not loaded!");
+                return null;
+            }
+
+            await window.Clerk.load();
+            const session = window.Clerk.session;
+
+            if (!session) {
+                window.location.href = "login.html";
+                return null;
+            }
+
+            return await session.getToken({
+                template: "Custom_Claims"
+            });
+        }
+        async function sendMessage() {
+            const input = document.getElementById("user-input");
+            const message = input.value.trim();
+            console.log("User message:", message);
+
+            if (!message) return;
+
+            // Show user message
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML += `<div class="user"><b>You:</b> ${message}</div>`;
+
+            input.value = "";
+
+            try {
+                const token = await getClerkToken();
+                const response = await fetch("https://geminichat-8aanz.sevalla.app/ask", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ query: message })
+                });
+
+                const data = await response.json();
+                chatBox.innerHTML += `<div class="bot"><b>Gemini:</b> ${data.response}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (err) {
+                chatBox.innerHTML += `<div class="bot"><b>Error:</b> ${err.message}</div>`;
+            }
+        }
+        function initClerk() {
+            if (!window.Clerk) {
+                console.error("Clerk script not loaded yet!");
+                return;
+            }
+            Clerk.load();
+        }
+    </script>
+    <!-- Clerk Script -->
+    <script async crossorigin="anonymous"
+        data-clerk-publishable-key="pk_test_dG9wLWdhbm5ldC05Mi5jbGVyay5hY2NvdW50cy5kZXYk"
+        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" onload="initClerk()">
+        </script>
+</body>
+
+</html>
